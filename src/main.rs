@@ -105,7 +105,7 @@ mod tests {
     use crate::{Field, Square, X_SIZE, Y_SIZE};
 
     #[test]
-    fn default_square() {
+    fn square_create() {
         let sq = Square::new();
 
         assert_eq!(sq.mine, false);
@@ -114,12 +114,17 @@ mod tests {
     }
 
     #[test]
-    fn field_add_mine() {
+    fn field_create() {
         let f = Field::new();
 
         assert_eq!(f.area.len(), X_SIZE);
         for line in 0..Y_SIZE {
             assert_eq!(f.area[line].len(), Y_SIZE);
         }
+    }
+
+    #[test]
+    fn field_add_mine() {
+        // TODO
     }
 }
