@@ -1,130 +1,76 @@
 extern crate rand;
 
-use core::cmp;
+mod field;
+mod field_ui;
 
+use crate::field::SearchResult;
+use field::Field;
 use rand::Rng;
+use std::io;
 
-const X_SIZE: usize = 5;
-const Y_SIZE: usize = 5;
-
-#[derive(Copy, Clone)]
-struct Square {
-    value: u8,
-    visible: bool,
-    mine: bool,
+struct Percent {
+    value: f32,
 }
 
-impl Square {
-    fn new() -> Square {
-        Square {
-            value: 0,
-            visible: true, // TODO: change default to false
-            mine: false,
+impl Percent {
+    fn new(value: usize) -> Percent {
+        if value > 100 {
+            panic!("Percentage out of range!");
         }
-    }
-}
 
-#[derive(Copy, Clone)]
-struct Field {
-    area: [[Square; Y_SIZE]; X_SIZE],
-}
-
-impl Field {
-    fn new() -> Field {
-        Field {
-            area: [[Square::new(); Y_SIZE]; X_SIZE],
+        Percent {
+            value: (value as f32 / 100.0),
         }
     }
 
-    fn set_mine(&mut self, x: usize, y: usize) {
-        let x_lower = x as i32 - 1;
-        let x_higher = x + 2;
-        let y_lower = y as i32 - 1;
-        let y_higher = y + 2;
-
-        for line in cmp::max(0, x_lower) as usize..cmp::min(X_SIZE, x_higher) {
-            for elem in cmp::max(0, y_lower) as usize..cmp::min(Y_SIZE, y_higher) {
-                if line != x || elem != y {
-                    self.area[line][elem].value += 1;
-                } else {
-                    self.area[line][elem].mine = true;
-                }
-            }
-        }
+    fn value(&self) -> f32 {
+        self.value
     }
 }
 
-fn print_field(field: &Field) {
-    println!("Field:");
-    for line in 0..X_SIZE {
-        for elem in 0..Y_SIZE {
-            if field.area[line][elem].visible == false {
-                print!(" X");
-            } else if field.area[line][elem].mine == true {
-                print!(" M");
-            } else if field.area[line][elem].value == 0 {
-                print!(" _");
-            } else {
-                print!(" {}", field.area[line][elem].value);
-            }
-        }
-        println!();
-    }
-}
-
-fn fill_mines_in_field(field: &mut Field, pct: u8) {
+fn fill_mines_in_field(field: &mut Field, pct: Percent) {
     let mut rng = rand::thread_rng();
-    for line in 0..X_SIZE {
-        for elem in 0..Y_SIZE {
-            if rng.gen_range(0, 100) < pct {
-                field.set_mine(line, elem);
-            }
-        }
-    }
-}
 
-fn update_field(field: &mut Field) {
-    // TODO
-    field.set_mine(2, 2);
+    let mine_cnt = ((field.size_x() * field.size_y()) as f32 * pct.value()) as usize;
+
+    for _i in 0..mine_cnt {
+        let x = rng.gen_range(0, field.size_x());
+        let y = rng.gen_range(0, field.size_y());
+
+        field.set_mine(x, y);
+    }
 }
 
 fn main() {
+    println!("Prepairing field...");
     let mut field = Field::new();
+    fill_mines_in_field(&mut field, Percent::new(20));
 
-    // TODO add game logic
+    println!("Let's start!");
+    loop {
+        let mut x = String::new();
+        let mut y = String::new();
 
-    fill_mines_in_field(&mut field, 20);
+        println!("Enter x coordinate:");
+        io::stdin().read_line(&mut x).expect("Input failed.");
+        println!("Enter y coordinate:");
+        io::stdin().read_line(&mut y).expect("Input failed.");
 
-    update_field(&mut field);
+        let x: usize = x.trim().parse().expect("x not a number.");
+        let y: usize = y.trim().parse().expect("y not a number.");
 
-    print_field(&field);
-}
+        let search = field.search_square(x, y);
 
-#[cfg(test)]
-mod tests {
-    use crate::{Field, Square, X_SIZE, Y_SIZE};
+        field_ui::print_field(&field);
 
-    #[test]
-    fn square_create() {
-        let sq = Square::new();
-
-        assert_eq!(sq.mine, false);
-        assert_eq!(sq.value, 0);
-        assert_eq!(sq.visible, false);
-    }
-
-    #[test]
-    fn field_create() {
-        let f = Field::new();
-
-        assert_eq!(f.area.len(), X_SIZE);
-        for line in 0..Y_SIZE {
-            assert_eq!(f.area[line].len(), Y_SIZE);
+        match search {
+            SearchResult::Mine => {
+                println!("BOOMM!! You lost!");
+                break;
+            }
+            SearchResult::Nothing => {}
         }
-    }
 
-    #[test]
-    fn field_add_mine() {
-        // TODO
+        // TODO Implement game finish.
     }
 }
