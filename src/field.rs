@@ -3,7 +3,7 @@ use core::cmp;
 const X_SIZE: usize = 10;
 const Y_SIZE: usize = 10;
 
-pub enum SearchResult {
+pub enum EvaluationResult {
     Mine,
     Nothing,
 }
@@ -38,15 +38,15 @@ impl Square {
 }
 
 #[derive(Copy, Clone)]
-pub struct Field {
+pub struct GameArea {
     area: [[Square; Y_SIZE]; X_SIZE],
     size_x: usize,
     size_y: usize,
 }
 
-impl Field {
-    pub fn new() -> Field {
-        Field {
+impl GameArea {
+    pub fn new() -> GameArea {
+        GameArea {
             area: [[Square::new(); Y_SIZE]; X_SIZE],
             size_x: X_SIZE,
             size_y: Y_SIZE,
@@ -89,8 +89,8 @@ impl Field {
         }
     }
 
-    pub fn search_square(&mut self, x: usize, y: usize) -> SearchResult {
-        let mut result = SearchResult::Mine;
+    pub fn evaluate_square(&mut self, x: usize, y: usize) -> EvaluationResult {
+        let mut result = EvaluationResult::Mine;
 
         let x_lower = x as i32 - 1;
         let x_higher = x + 2;
@@ -105,13 +105,13 @@ impl Field {
                 for line in cmp::max(0, x_lower) as usize..cmp::min(X_SIZE, x_higher) {
                     for elem in cmp::max(0, y_lower) as usize..cmp::min(Y_SIZE, y_higher) {
                         if !self.area[line][elem].visible {
-                            self.search_square(line, elem);
+                            self.evaluate_square(line, elem);
                         }
                     }
                 }
             }
 
-            result = SearchResult::Nothing;
+            result = EvaluationResult::Nothing;
         }
 
         result
@@ -134,7 +134,7 @@ impl Field {
 
 #[cfg(test)]
 mod tests {
-    use crate::field::{Field, Square, X_SIZE, Y_SIZE};
+    use crate::field::{GameArea, Square, X_SIZE, Y_SIZE};
 
     #[test]
     fn square_create() {
@@ -147,7 +147,7 @@ mod tests {
 
     #[test]
     fn field_create() {
-        let f = Field::new();
+        let f = GameArea::new();
 
         assert_eq!(f.area.len(), X_SIZE);
         for line in 0..Y_SIZE {

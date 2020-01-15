@@ -4,9 +4,9 @@ use std::io;
 
 use rand::Rng;
 
-use field::Field;
+use field::GameArea;
 
-use crate::field::SearchResult;
+use crate::field::EvaluationResult;
 
 mod field;
 mod field_ui;
@@ -31,16 +31,16 @@ impl Percent {
     }
 }
 
-fn fill_mines_in_field(field: &mut Field, pct: Percent) {
+fn fill_mines_in_area(area: &mut GameArea, pct: Percent) {
     let mut rng = rand::thread_rng();
 
-    let mine_cnt = ((field.size_x() * field.size_y()) as f32 * pct.value()) as usize;
+    let mine_cnt = ((area.size_x() * area.size_y()) as f32 * pct.value()) as usize;
 
     for _i in 0..mine_cnt {
-        let x = rng.gen_range(0, field.size_x());
-        let y = rng.gen_range(0, field.size_y());
+        let x = rng.gen_range(0, area.size_x());
+        let y = rng.gen_range(0, area.size_y());
 
-        field.set_mine(x, y);
+        area.set_mine(x, y);
     }
 }
 
@@ -60,27 +60,27 @@ fn input_coordinate() -> (usize, usize) {
 }
 
 fn main() {
-    println!("Prepairing field...");
-    let mut field = Field::new();
-    fill_mines_in_field(&mut field, Percent::new(10));
+    println!("Prepairing game area...");
+    let mut area = GameArea::new();
+    fill_mines_in_area(&mut area, Percent::new(10));
 
     println!("Let's start!");
-    field_ui::print_field(&field);
+    field_ui::print_area(&area);
 
     loop {
         let (x, y) = input_coordinate();
 
-        let search = field.search_square(x, y);
+        let evaluation = area.evaluate_square(x, y);
 
-        field_ui::print_field(&field);
+        field_ui::print_area(&area);
 
-        match search {
-            SearchResult::Mine => {
+        match evaluation {
+            EvaluationResult::Mine => {
                 println!("BOOMM!! You lost!");
                 break;
             }
-            SearchResult::Nothing => {
-                if field.all_mines_detected() {
+            EvaluationResult::Nothing => {
+                if area.all_mines_detected() {
                     println!("==> You  WON !!! <==");
                     break;
                 }
