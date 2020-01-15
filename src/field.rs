@@ -19,7 +19,7 @@ impl Square {
     pub fn new() -> Square {
         Square {
             value: 0,
-            visible: true,
+            visible: false,
             mine: false,
         }
     }
@@ -75,7 +75,8 @@ impl Field {
             return;
         }
 
-        println!("Placing mine at ({}, {}). Psst!", x, y);
+        // todo debug output
+        //println!("Placing mine at ({}, {}). Psst!", x, y);
 
         for line in cmp::max(0, x_lower) as usize..cmp::min(X_SIZE, x_higher) {
             for elem in cmp::max(0, y_lower) as usize..cmp::min(Y_SIZE, y_higher) {
@@ -88,9 +89,46 @@ impl Field {
         }
     }
 
-    pub fn search_square(&self, x: usize, y: usize) -> SearchResult {
-        // TODO implement function
-        return SearchResult::Mine;
+    pub fn search_square(&mut self, x: usize, y: usize) -> SearchResult {
+        let mut result = SearchResult::Mine;
+
+        let x_lower = x as i32 - 1;
+        let x_higher = x + 2;
+        let y_lower = y as i32 - 1;
+        let y_higher = y + 2;
+        // TODO extract surrounding fkt from this and above fkt.
+
+        self.area[x][y].visible = true;
+
+        if self.area[x][y].mine == false {
+            if self.area[x][y].value == 0 {
+                for line in cmp::max(0, x_lower) as usize..cmp::min(X_SIZE, x_higher) {
+                    for elem in cmp::max(0, y_lower) as usize..cmp::min(Y_SIZE, y_higher) {
+                        if !self.area[line][elem].visible {
+                            self.search_square(line, elem);
+                        }
+                    }
+                }
+            }
+
+            result = SearchResult::Nothing;
+        }
+
+        result
+    }
+
+    pub fn all_mines_detected(&self) -> bool {
+        let mut result = true;
+
+        for line in 0..X_SIZE {
+            for elem in 0..Y_SIZE {
+                if !((!self.area[line][elem].mine) && (self.area[line][elem].visible)) {
+                    result = false;
+                }
+            }
+        }
+
+        result
     }
 }
 

@@ -1,12 +1,15 @@
 extern crate rand;
 
-mod field;
-mod field_ui;
+use std::io;
+
+use rand::Rng;
+
+use field::Field;
 
 use crate::field::SearchResult;
-use field::Field;
-use rand::Rng;
-use std::io;
+
+mod field;
+mod field_ui;
 
 struct Percent {
     value: f32,
@@ -41,23 +44,31 @@ fn fill_mines_in_field(field: &mut Field, pct: Percent) {
     }
 }
 
+fn input_coordinate() -> (usize, usize) {
+    let mut x = String::new();
+    let mut y = String::new();
+
+    println!("Enter x coordinate:");
+    io::stdin().read_line(&mut x).expect("Input failed.");
+    println!("Enter y coordinate:");
+    io::stdin().read_line(&mut y).expect("Input failed.");
+
+    let x: usize = x.trim().parse().expect("x not a number.");
+    let y: usize = y.trim().parse().expect("y not a number.");
+
+    (x, y)
+}
+
 fn main() {
     println!("Prepairing field...");
     let mut field = Field::new();
     fill_mines_in_field(&mut field, Percent::new(20));
 
     println!("Let's start!");
+    field_ui::print_field(&field);
+
     loop {
-        let mut x = String::new();
-        let mut y = String::new();
-
-        println!("Enter x coordinate:");
-        io::stdin().read_line(&mut x).expect("Input failed.");
-        println!("Enter y coordinate:");
-        io::stdin().read_line(&mut y).expect("Input failed.");
-
-        let x: usize = x.trim().parse().expect("x not a number.");
-        let y: usize = y.trim().parse().expect("y not a number.");
+        let (x, y) = input_coordinate();
 
         let search = field.search_square(x, y);
 
@@ -68,9 +79,12 @@ fn main() {
                 println!("BOOMM!! You lost!");
                 break;
             }
-            SearchResult::Nothing => {}
+            SearchResult::Nothing => {
+                if field.all_mines_detected() {
+                    println!("==> You  WON !!! <==");
+                    break;
+                }
+            }
         }
-
-        // TODO Implement game finish.
     }
 }
