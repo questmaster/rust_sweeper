@@ -1,7 +1,7 @@
 use core::cmp;
 
-const X_SIZE: usize = 5;
-const Y_SIZE: usize = 5;
+const X_SIZE: usize = 10;
+const Y_SIZE: usize = 10;
 
 pub enum SearchResult {
     Mine,
@@ -76,7 +76,7 @@ impl Field {
         }
 
         // todo debug output
-        //println!("Placing mine at ({}, {}). Psst!", x, y);
+        println!("Placing mine at ({}, {}). Psst!", x, y);
 
         for line in cmp::max(0, x_lower) as usize..cmp::min(X_SIZE, x_higher) {
             for elem in cmp::max(0, y_lower) as usize..cmp::min(Y_SIZE, y_higher) {
@@ -122,7 +122,7 @@ impl Field {
 
         for line in 0..X_SIZE {
             for elem in 0..Y_SIZE {
-                if !((!self.area[line][elem].mine) && (self.area[line][elem].visible)) {
+                if !self.area[line][elem].mine && !self.area[line][elem].visible {
                     result = false;
                 }
             }

@@ -62,7 +62,7 @@ fn input_coordinate() -> (usize, usize) {
 fn main() {
     println!("Prepairing field...");
     let mut field = Field::new();
-    fill_mines_in_field(&mut field, Percent::new(20));
+    fill_mines_in_field(&mut field, Percent::new(10));
 
     println!("Let's start!");
     field_ui::print_field(&field);
