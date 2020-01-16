@@ -134,7 +134,7 @@ impl GameArea {
 
 #[cfg(test)]
 mod tests {
-    use crate::field::{GameArea, Square, X_SIZE, Y_SIZE};
+    use crate::game_area::{GameArea, Square, X_SIZE, Y_SIZE};
 
     #[test]
     fn square_create() {

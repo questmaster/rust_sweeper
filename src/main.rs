@@ -4,12 +4,12 @@ use std::io;
 
 use rand::Rng;
 
-use field::GameArea;
+use game_area::GameArea;
 
-use crate::field::EvaluationResult;
+use crate::game_area::EvaluationResult;
 
-mod field;
-mod field_ui;
+mod game_area;
+mod game_area_ui;
 
 struct Percent {
     value: f32,
@@ -65,14 +65,14 @@ fn main() {
     fill_mines_in_area(&mut area, Percent::new(10));
 
     println!("Let's start!");
-    field_ui::print_area(&area);
+    game_area_ui::print_area(&area);
 
     loop {
         let (x, y) = input_coordinate();
 
         let evaluation = area.evaluate_square(x, y);
 
-        field_ui::print_area(&area);
+        game_area_ui::print_area(&area);
 
         match evaluation {
             EvaluationResult::Mine => {

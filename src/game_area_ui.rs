@@ -1,4 +1,4 @@
-use crate::field::GameArea;
+use crate::game_area::GameArea;
 
 pub fn print_area(area: &GameArea) {
     println!("Game area:");
