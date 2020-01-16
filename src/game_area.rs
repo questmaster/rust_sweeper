@@ -76,7 +76,7 @@ impl GameArea {
         }
 
         // todo debug output
-        println!("Placing mine at ({}, {}). Psst!", x, y);
+        //println!("Placing mine at ({}, {}). Psst!", x, y);
 
         for line in cmp::max(0, x_lower) as usize..cmp::min(X_SIZE, x_higher) {
             for elem in cmp::max(0, y_lower) as usize..cmp::min(Y_SIZE, y_higher) {
@@ -157,6 +157,6 @@ mod tests {
 
     #[test]
     fn field_add_mine() {
-        // TODO
+        // TODO add test code
     }
 }
