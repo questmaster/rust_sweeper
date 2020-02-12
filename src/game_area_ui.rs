@@ -3,8 +3,8 @@ use crate::game_area::GameArea;
 pub fn print_area(area: &GameArea) {
     println!("Game area:");
     // todo not dynamic
-    println!("      0  1  2  3  4  5  6  7  8  9");
-    println!("   +------------------------------");
+    println!("   X  0  1  2  3  4  5  6  7  8  9");
+    println!(" Y +------------------------------");
     for elem in 0..area.size_y() {
         print!(" {} |", elem);
         for line in 0..area.size_x() {
