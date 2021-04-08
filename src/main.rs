@@ -1,10 +1,7 @@
-extern crate rand;
-
 use std::io;
 // "self" imports the "image" module itself as well as everything else we listed
 use std::time::Duration;
 
-use rand::Rng;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
@@ -12,44 +9,12 @@ use sdl2::rect::{Point, Rect};
 use sdl2::render::{Texture, WindowCanvas};
 
 use game_area::GameArea;
-
-use crate::game_area::EvaluationResult;
+use game_area::EvaluationResult;
+use game_area::percent::Percent;
 
 mod game_area;
 mod game_area_ui;
 
-struct Percent {
-    value: f32,
-}
-
-impl Percent {
-    fn new(value: usize) -> Percent {
-        if value > 100 {
-            panic!("Percentage out of range!");
-        }
-
-        Percent {
-            value: (value as f32 / 100.0),
-        }
-    }
-
-    fn value(&self) -> f32 {
-        self.value
-    }
-}
-
-fn fill_mines_in_area(area: &mut GameArea, pct: Percent) {
-    let mut rng = rand::thread_rng();
-
-    let mine_cnt = ((area.size_x() * area.size_y()) as f32 * pct.value()) as usize;
-
-    for _i in 0..mine_cnt {
-        let x = rng.gen_range(0..area.size_x());
-        let y = rng.gen_range(0..area.size_y());
-
-        area.set_mine(x, y);
-    }
-}
 
 fn input_coordinate() -> (usize, usize) {
     let mut x = String::new();
@@ -80,7 +45,7 @@ fn render(canvas: &mut WindowCanvas, color: Color) -> Result<(), String> {
 fn main() -> Result<(), String> {
     println!("Prepairing game area...");
     let mut area = GameArea::new();
-    fill_mines_in_area(&mut area, Percent::new(10));
+    area.fill_mines_in_area(Percent::new(10));
 
     println!("Let's start!");
     //game_area_ui::print_area(&area);

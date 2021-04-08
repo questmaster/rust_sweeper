@@ -8,14 +8,14 @@ pub fn print_area(area: &GameArea) {
     for elem in 0..area.size_y() {
         print!(" {} |", elem);
         for line in 0..area.size_x() {
-            if area.area()[line][elem].visible() == false {
+            if area.area()[line][elem].visible == false {
                 print!("  *");
-            } else if area.area()[line][elem].mine() == true {
+            } else if area.area()[line][elem].mine == true {
                 print!("  M");
-            } else if area.area()[line][elem].value() == 0 {
+            } else if area.area()[line][elem].value == 0 {
                 print!("  _");
             } else {
-                print!("  {}", area.area()[line][elem].value());
+                print!("  {}", area.area()[line][elem].value);
             }
         }
         println!();

@@ -1,40 +1,18 @@
 use core::cmp;
+use rand::Rng;
+use percent::Percent;
+use square::Square;
+
+pub mod percent;
+mod square;
 
 const X_SIZE: usize = 10;
 const Y_SIZE: usize = 10;
 
+#[derive(Debug, PartialEq)]
 pub enum EvaluationResult {
     Mine,
     Nothing,
-}
-
-#[derive(Copy, Clone)]
-pub struct Square {
-    value: u8,
-    visible: bool,
-    mine: bool,
-}
-
-impl Square {
-    pub fn new() -> Square {
-        Square {
-            value: 0,
-            visible: false,
-            mine: false,
-        }
-    }
-
-    pub fn value(&self) -> u8 {
-        self.value
-    }
-
-    pub fn visible(&self) -> bool {
-        self.visible
-    }
-
-    pub fn mine(&self) -> bool {
-        self.mine
-    }
 }
 
 #[derive(Copy, Clone)]
@@ -45,12 +23,16 @@ pub struct GameArea {
 }
 
 impl GameArea {
-    pub fn new() -> GameArea {
-        GameArea {
+    pub fn new(perc: Percent) -> GameArea {
+        let mut f = GameArea {
             area: [[Square::new(); Y_SIZE]; X_SIZE],
             size_x: X_SIZE,
             size_y: Y_SIZE,
-        }
+        };
+
+        f.fill_mines_in_area(perc);
+
+        f
     }
 
     pub fn area(&self) -> &[[Square; Y_SIZE]; X_SIZE] {
@@ -130,24 +112,28 @@ impl GameArea {
 
         result
     }
+
+    fn fill_mines_in_area(&mut self, pct: Percent) {
+        let mut rng = rand::thread_rng();
+
+        let mine_cnt = ((self.size_x() * self.size_y()) as f32 * pct.value()) as usize;
+
+        for _i in 0..mine_cnt {
+            let x = rng.gen_range(0..self.size_x());
+            let y = rng.gen_range(0..self.size_y());
+
+            self.set_mine(x, y);
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::game_area::{GameArea, Square, X_SIZE, Y_SIZE};
+    use super::*;
 
     #[test]
-    fn square_create() {
-        let sq = Square::new();
-
-        assert_eq!(sq.mine, false);
-        assert_eq!(sq.value, 0);
-        assert_eq!(sq.visible, false);
-    }
-
-    #[test]
-    fn field_create() {
-        let f = GameArea::new();
+    fn game_area_create() {
+        let f = GameArea::new(Percent::new(0));
 
         assert_eq!(f.area.len(), X_SIZE);
         for line in 0..Y_SIZE {
@@ -156,7 +142,12 @@ mod tests {
     }
 
     #[test]
-    fn field_add_mine() {
-        // TODO add test code
+    fn game_area_add_mine() {
+        let mut f = GameArea::new(Percent::new(0));
+
+        f.set_mine(3, 3);
+
+        assert_eq!(f.evaluate_square(3,3), EvaluationResult::Mine );
+        assert_eq!(f.evaluate_square(3,4), EvaluationResult::Nothing );
     }
 }
