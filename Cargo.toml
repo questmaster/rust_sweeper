@@ -1,6 +1,6 @@
 [package]
 name = "rust_sweeper"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Daniel"]
 edition = "2018"
 build = "build.rs"
