@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="run" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+  <configuration default="false" name="run sdl" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
     <option name="command" value="run -- -s" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
     <option name="channel" value="DEFAULT" />

@@ -1,6 +1,6 @@
 use core::cmp;
-use rand::Rng;
 use percent::Percent;
+use rand::Rng;
 use square::Square;
 
 pub mod percent;
@@ -57,9 +57,11 @@ impl GameArea {
             return;
         }
 
-        // todo debug output
-        //println!("Placing mine at ({}, {}). Psst!", x, y);
+        if cfg!(debug_assertions) {
+            println!("[Debug] Placing mine at ({}, {}). Psst!", x, y);
+        }
 
+        // todo: maybe add iterators
         for line in cmp::max(0, x_lower) as usize..cmp::min(X_SIZE, x_higher) {
             for elem in cmp::max(0, y_lower) as usize..cmp::min(Y_SIZE, y_higher) {
                 if line != x || elem != y {
@@ -147,7 +149,7 @@ mod tests {
 
         f.set_mine(3, 3);
 
-        assert_eq!(f.evaluate_square(3,3), EvaluationResult::Mine );
-        assert_eq!(f.evaluate_square(3,4), EvaluationResult::Nothing );
+        assert_eq!(f.evaluate_square(3, 3), EvaluationResult::Mine);
+        assert_eq!(f.evaluate_square(3, 4), EvaluationResult::Nothing);
     }
 }
