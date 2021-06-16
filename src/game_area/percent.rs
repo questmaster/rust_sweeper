@@ -1,5 +1,3 @@
-
-
 pub struct Percent {
     value: f32,
 }
@@ -29,5 +27,11 @@ mod tests {
         let p = Percent::new(10);
 
         assert_eq!(p.value(), 0.1f32);
+    }
+
+    #[test]
+    #[should_panic]
+    fn percent_too_large() {
+        let _p = Percent::new(110);
     }
 }
