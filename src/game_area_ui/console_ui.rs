@@ -1,10 +1,8 @@
-use crate::game_area::{GameArea, EvaluationResult};
+use super::GameUi;
+use crate::game_area::{EvaluationResult, GameArea};
 use std::io;
-use crate::ui::GameUi;
 
-pub struct Console {
-
-}
+pub struct Console {}
 
 impl Console {
     pub fn new() -> Self {
