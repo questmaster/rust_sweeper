@@ -1,23 +1,31 @@
 use rust_sweeper::{GameUiType, SweeperGame};
-use std::env;
+use structopt::StructOpt;
 
-fn process_cmd_line_params() -> GameUiType {
-    let args: Vec<String> = env::args().collect();
-
-    match &args.get(1) {
-        Some(text) => {
-            if **text == "console".to_string() {
-                GameUiType::Console
-            } else {
-                GameUiType::SDL
-            }
-        }
-        None => GameUiType::Console,
-    }
+#[derive(Debug, StructOpt)]
+#[structopt(
+    name = "Rust_Sweeper",
+    about = "A mine sweeper clone written in rust programming language."
+)]
+struct Opt {
+    /// Activate SDL user interface
+    #[structopt(
+        short = "s",
+        long = "sdl_ui",
+        help = "Activate SDL GUI replacing the Console version."
+    )]
+    use_sdl_ui: bool,
 }
 
 fn main() {
-    let ui_type = process_cmd_line_params();
+    let opts = Opt::from_args();
+
+    let ui_type;
+    if opts.use_sdl_ui {
+        ui_type = GameUiType::SDL;
+    } else {
+        ui_type = GameUiType::Console;
+    }
+
     let mut game = SweeperGame::new(ui_type);
     game.start();
 }

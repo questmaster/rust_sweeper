@@ -9,6 +9,7 @@ build = "build.rs"
 
 [dependencies]
 rand = "0.8"
+structopt = "0.3.21"
 
 [dependencies.sdl2]
 version = "0.34"
