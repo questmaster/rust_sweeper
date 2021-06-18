@@ -4,7 +4,7 @@ use rand::Rng;
 use square::Square;
 
 pub mod percent;
-mod square;
+pub(crate) mod square;
 
 const X_SIZE: usize = 10;
 const Y_SIZE: usize = 10;

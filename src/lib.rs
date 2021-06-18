@@ -1,7 +1,7 @@
 use std::time::Duration;
 
-use game_area::percent::Percent;
 use game_area::GameArea;
+use game_area::percent::Percent;
 use game_area_ui::GameUi;
 
 mod game_area;
@@ -45,8 +45,12 @@ impl SweeperGame {
                     x = xx;
                     y = yy;
                 }
-                Err(_) => {
+                Err(true) => {
                     break 'running;
+                }
+                _ => {
+                    self.game_ui.print_area(&self.area).unwrap(); // Terminal
+                    continue 'running;
                 }
             }
 

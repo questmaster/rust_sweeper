@@ -1,6 +1,8 @@
-use super::GameUi;
-use crate::game_area::{EvaluationResult, GameArea};
 use std::io;
+
+use crate::game_area::{EvaluationResult, GameArea};
+
+use super::GameUi;
 
 pub struct Console {}
 
@@ -11,7 +13,7 @@ impl Console {
 }
 
 impl GameUi for Console {
-    fn input_coordinate(&mut self) -> Result<(usize, usize), ()> {
+    fn input_coordinate(&mut self) -> Result<(usize, usize), bool> {
         let mut x = String::new();
         let mut y = String::new();
 
@@ -26,7 +28,7 @@ impl GameUi for Console {
         Ok((x, y))
     }
 
-    fn output_game_finished(&self, evaluation: EvaluationResult, all_mines_detected: bool) -> bool {
+    fn output_game_finished(&mut self, evaluation: EvaluationResult, all_mines_detected: bool) -> bool {
         let mut game_finished = false;
 
         match evaluation {

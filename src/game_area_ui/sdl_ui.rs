@@ -1,17 +1,21 @@
-use super::GameUi;
-use crate::game_area::{EvaluationResult, GameArea};
+use std::collections::HashMap;
+
 use sdl2::event::Event;
+use sdl2::EventPump;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::MouseButton;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
-use sdl2::render::Canvas;
 use sdl2::render::{Texture, TextureCreator};
+use sdl2::render::Canvas;
 use sdl2::surface::Surface;
 use sdl2::ttf::{Font, Sdl2TtfContext};
 use sdl2::video::{Window, WindowContext};
-use sdl2::EventPump;
-use std::collections::HashMap;
+
+use crate::game_area::{EvaluationResult, GameArea};
+use crate::game_area::square::Square;
+
+use super::GameUi;
 
 pub struct TextureManager<'a> {
     tc: &'a TextureCreator<WindowContext>,
@@ -19,14 +23,14 @@ pub struct TextureManager<'a> {
 }
 
 impl<'s> TextureManager<'s> {
-    pub fn new<'a>(texture_creator: &'a TextureCreator<WindowContext>) -> TextureManager {
+    pub fn new(texture_creator: &TextureCreator<WindowContext>) -> TextureManager {
         return TextureManager {
             tc: &texture_creator,
             textures: HashMap::new(),
         };
     }
 
-    pub fn load(&mut self, resource_id: &str, surface: Surface) -> &Texture {
+    pub fn from_surface(&mut self, resource_id: &str, surface: Surface) -> &Texture {
         {
             if self.textures.contains_key(resource_id) {
                 return self.textures.get(resource_id).unwrap();
@@ -58,7 +62,7 @@ pub struct Sdl {
     canvas: Canvas<Window>,
     event_pump: EventPump,
     ttf_context: Sdl2TtfContext,
-    SQUARE_SIZE: u32,
+    square_size: u32,
 }
 
 impl Sdl {
@@ -66,25 +70,25 @@ impl Sdl {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
         let window = video_subsystem
-            .window("Rust Sweeper - SDL Edition", 600, 800)
+            .window("Rust Sweeper - SDL Edition", 650, 650)
             .position_centered()
             .opengl()
             .build()
             .expect("could not initialize video subsystem");
-        let mut canvas: Canvas<Window> = window
+        let canvas: Canvas<Window> = window
             .into_canvas()
             .build()
             .expect("could not make a canvas");
 
         let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string()).unwrap();
 
-        let mut event_pump = sdl_context.event_pump().unwrap();
+        let event_pump = sdl_context.event_pump().unwrap();
 
         Sdl {
             canvas,
             event_pump,
             ttf_context,
-            SQUARE_SIZE: 50,
+            square_size: 50,
         }
     }
 
@@ -107,10 +111,10 @@ impl Sdl {
         let mut texture_manager = TextureManager::new(&texture_creator);
 
         // render a surface, and convert it to a texture bound to the canvas
-        for n in 1..9 {
+        for n in 0..=9 {
             let number = &n.to_string();
             let left = &format!("{}{}", "left", number);
-            let line = &format!(" {} |", number);
+            let line = &format!(" {}", number);
 
             Sdl::generate_and_store_texture(&mut font, &mut texture_manager, number, number);
 
@@ -118,57 +122,96 @@ impl Sdl {
         }
         Sdl::generate_and_store_texture(&mut font, &mut texture_manager, "*", "*");
         Sdl::generate_and_store_texture(&mut font, &mut texture_manager, "M", "M");
-        Sdl::generate_and_store_texture(&mut font, &mut texture_manager, "-", "-");
         Sdl::generate_and_store_texture(
             &mut font,
             &mut texture_manager,
             "head1",
-            "   X 1 2 3 4 5 6 7 8 9",
+            "   X 0 1 2 3 4 5 6 7 8 9",
         );
-        Sdl::generate_and_store_texture(
-            &mut font,
-            &mut texture_manager,
-            "head2",
-            " Y +------------------",
-        );
-        Sdl::generate_and_store_texture(&mut font, &mut texture_manager, "leftE", "   |");
+        Sdl::generate_and_store_texture(&mut font, &mut texture_manager, "head2", " Y");
+        Sdl::generate_and_store_texture(&mut font, &mut texture_manager, "win", "Winner!");
+        Sdl::generate_and_store_texture(&mut font, &mut texture_manager, "loose", "LOOSER!");
+
         // ------------------------------------------------------------
 
+        self.canvas.set_draw_color(Color::RGB(0, 0, 255));
         Sdl::write_coordinatesystem(&mut self.canvas, &texture_manager);
-        self.canvas.copy(
-            &texture_manager.get("5"),
-            None,
-            Rect::new(100, 100, self.SQUARE_SIZE / 2, self.SQUARE_SIZE),
-        )?;
-        self.canvas
-            .draw_line(Point::new(100, 100), Point::new(200, 200));
+
+        for elem in 0..game_area.size_y() {
+            // todo: positioning is wrong
+            for line in 0..game_area.size_x() {
+                Sdl::write_square_value(
+                    &mut self.canvas,
+                    &texture_manager,
+                    line as i32,
+                    elem as i32,
+                    &game_area.area()[line][elem],
+                );
+            }
+        }
 
         self.canvas.present();
 
         Ok(())
     }
 
+    fn write_square_value(
+        canvas: &mut Canvas<Window>,
+        texture_manager: &TextureManager,
+        x: i32,
+        y: i32,
+        square: &Square,
+    ) {
+        if square.visible == false {
+            Sdl::write_texture(
+                canvas,
+                texture_manager.get(&"*"),
+                (x * 50) + 118,
+                (y * 50) + 104,
+                25,
+                50,
+            );
+        } else if square.mine == true {
+            Sdl::write_texture(
+                canvas,
+                texture_manager.get(&"M"),
+                (x * 50) + 118,
+                (y * 50) + 104,
+                25,
+                50,
+            );
+        } else if square.value == 0 {
+        } else {
+            Sdl::write_texture(
+                canvas,
+                texture_manager.get(&square.value.to_string()),
+                (x * 50) + 118,
+                (y * 50) + 104,
+                25,
+                50,
+            );
+        }
+    }
+
     fn write_coordinatesystem(canvas: &mut Canvas<Window>, texture_manager: &TextureManager) {
-        Sdl::write_texture(canvas, texture_manager.get("head1"), 0, 0, 550, 50);
-        Sdl::write_texture(canvas, texture_manager.get("head2"), 0, 50, 550, 50);
-        Sdl::write_texture(canvas, texture_manager.get("leftE"), 0, 100, 100, 50);
-        Sdl::write_texture(canvas, texture_manager.get("left1"), 0, 150, 100, 50);
-        Sdl::write_texture(canvas, texture_manager.get("leftE"), 0, 200, 100, 50);
-        Sdl::write_texture(canvas, texture_manager.get("left2"), 0, 250, 100, 50);
-        Sdl::write_texture(canvas, texture_manager.get("leftE"), 0, 300, 100, 50);
-        Sdl::write_texture(canvas, texture_manager.get("left3"), 0, 350, 100, 50);
-        Sdl::write_texture(canvas, texture_manager.get("leftE"), 0, 400, 100, 50);
-        Sdl::write_texture(canvas, texture_manager.get("left4"), 0, 450, 100, 50);
-        Sdl::write_texture(canvas, texture_manager.get("leftE"), 0, 500, 100, 50);
-        Sdl::write_texture(canvas, texture_manager.get("left5"), 0, 550, 100, 50);
-        //        Sdl::write_texture(canvas, texture_manager.get("leftE"), 0, 600, 100, 50);
-        //        Sdl::write_texture(canvas, texture_manager.get("left6"), 0, 650, 100, 50);
-        //        Sdl::write_texture(canvas, texture_manager.get("leftE"), 0, 700, 100, 50);
-        //        Sdl::write_texture(canvas, texture_manager.get("left7"), 0, 750, 100, 50);
-        //        Sdl::write_texture(canvas, texture_manager.get("leftE"), 0, 800, 100, 50);
-        //        Sdl::write_texture(canvas, texture_manager.get("left8"), 0, 850, 100, 50);
-        //        Sdl::write_texture(canvas, texture_manager.get("leftE"), 0, 900, 100, 50);
-        //        Sdl::write_texture(canvas, texture_manager.get("left9"), 0, 950, 100, 50);
+        Sdl::write_texture(canvas, texture_manager.get("head1"), 0, 0, 600, 50);
+        Sdl::write_texture(canvas, texture_manager.get("head2"), 0, 50, 50, 50);
+        Sdl::write_texture(canvas, texture_manager.get("left0"), 0, 100, 50, 50);
+        Sdl::write_texture(canvas, texture_manager.get("left1"), 0, 150, 50, 50);
+        Sdl::write_texture(canvas, texture_manager.get("left2"), 0, 200, 50, 50);
+        Sdl::write_texture(canvas, texture_manager.get("left3"), 0, 250, 50, 50);
+        Sdl::write_texture(canvas, texture_manager.get("left4"), 0, 300, 50, 50);
+        Sdl::write_texture(canvas, texture_manager.get("left5"), 0, 350, 50, 50);
+        Sdl::write_texture(canvas, texture_manager.get("left6"), 0, 400, 50, 50);
+        Sdl::write_texture(canvas, texture_manager.get("left7"), 0, 450, 50, 50);
+        Sdl::write_texture(canvas, texture_manager.get("left8"), 0, 500, 50, 50);
+        Sdl::write_texture(canvas, texture_manager.get("left9"), 0, 550, 50, 50);
+        for row in 0..=9 {
+            for column in 0..=9 {
+                let rect = [Rect::new((column * 50) + 104, (row * 50) + 100, 50, 50)];
+                canvas.draw_rects(&rect);
+            }
+        }
     }
 
     fn write_texture(
@@ -195,14 +238,14 @@ impl Sdl {
             .blended(Color::RGBA(255, 255, 255, 255))
             .map_err(|e| e.to_string())
             .unwrap();
-        texture_manager.load(id, surface);
+        texture_manager.from_surface(id, surface);
     }
 }
 
 impl GameUi for Sdl {
-    fn input_coordinate(&mut self) -> Result<(usize, usize), ()> {
+    fn input_coordinate(&mut self) -> Result<(usize, usize), bool> {
         let (x, y) = (0usize, 0usize);
-        let mut result: Result<(usize, usize), ()> = Ok((0usize, 0usize));
+        let mut result: Result<(usize, usize), bool> = Err(false);
 
         for event in self.event_pump.poll_iter() {
             match event {
@@ -211,7 +254,7 @@ impl GameUi for Sdl {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => {
-                    result = Err(());
+                    result = Err(true);
                 }
                 Event::MouseButtonDown {
                     x,
@@ -219,30 +262,59 @@ impl GameUi for Sdl {
                     mouse_btn: MouseButton::Left,
                     ..
                 } => {
-                    //todo!("This code is not adjusted to the game");
-                    let x = (x as u32) / self.SQUARE_SIZE;
-                    let y = (y as u32) / self.SQUARE_SIZE;
-                    /*                    match game.get_mut(x as i32, y as i32) {
-                                          Some(square) => {
-                                              *square = !(*square);
-                                          }
-                                          None => unreachable!(),
-                                      };
-                    */
+                    let x = ((x as usize) - 100) / self.square_size as usize;
+                    let y = ((y as usize) - 100) / self.square_size as usize;
+                    result = Ok((x, y));
                 }
                 _ => {
                     // Extract x and y from UI
-                    //(x, y) = todo!();
-                    result = Ok((x, y));
+                    //(x, y) = todo!("FIXME: This triggers always to eval 0,0!");
+                    result = Err(false);
                 }
             }
         }
         result
     }
 
-    fn output_game_finished(&self, evaluation: EvaluationResult, all_mines_detected: bool) -> bool {
-        //todo!();
-        false
+    fn output_game_finished(&mut self, evaluation: EvaluationResult, all_mines_detected: bool) -> bool {
+        let mut game_finished = false;
+
+        match evaluation {
+            EvaluationResult::Mine => {
+                self.canvas.set_draw_color(Color::RGB(255, 0, 0));
+                println!("BOOMM!! You lost!");
+
+//                Sdl::write_texture(
+//                    &mut self.canvas,
+//                    &self.texture_manager.get("loose"),
+//                    250,
+//                    250,
+//                    175,
+//                    50,
+//                );
+
+                game_finished = true;
+            }
+            EvaluationResult::Nothing => {
+                if all_mines_detected {
+                    self.canvas.set_draw_color(Color::RGB(0, 255, 0));
+                    println!("==> You  WON !!! <==");
+
+//                    Sdl::write_texture(
+//                        &mut self.canvas,
+//                        &self.texture_manager.get("win"),
+//                        250,
+//                        250,
+//                        175,
+//                        50,
+//                    );
+
+                    game_finished = true;
+                }
+            }
+        }
+
+        game_finished
     }
 
     fn print_area(&mut self, area: &GameArea) -> Result<(), String> {
