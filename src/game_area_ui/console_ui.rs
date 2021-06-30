@@ -28,26 +28,7 @@ impl GameUi for Console {
         Ok((x, y))
     }
 
-    fn output_game_finished(&mut self, evaluation: EvaluationResult, all_mines_detected: bool) -> bool {
-        let mut game_finished = false;
-
-        match evaluation {
-            EvaluationResult::Mine => {
-                println!("BOOMM!! You lost!");
-                game_finished = true;
-            }
-            EvaluationResult::Nothing => {
-                if all_mines_detected {
-                    println!("==> You  WON !!! <==");
-                    game_finished = true;
-                }
-            }
-        }
-
-        game_finished
-    }
-
-    fn print_area(&mut self, area: &GameArea) -> Result<(), String> {
+    fn print_area(&mut self, area: &GameArea, evaluation: &EvaluationResult) -> Result<(), String> {
         println!("Game area:");
         // todo not dynamic
         println!("   X  0  1  2  3  4  5  6  7  8  9");
@@ -66,6 +47,18 @@ impl GameUi for Console {
                 }
             }
             println!();
+        }
+
+        match evaluation {
+            EvaluationResult::Mine => {
+                println!("BOOMM!! You lost!");
+            }
+            EvaluationResult::Won => {
+                println!("==> You  WON !!! <==");
+            }
+            _ => {
+                // noting to do
+            }
         }
 
         Ok(())

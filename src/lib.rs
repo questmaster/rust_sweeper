@@ -1,8 +1,10 @@
 use std::time::Duration;
 
-use game_area::GameArea;
 use game_area::percent::Percent;
+use game_area::GameArea;
 use game_area_ui::GameUi;
+
+use crate::game_area::EvaluationResult;
 
 mod game_area;
 mod game_area_ui;
@@ -15,7 +17,6 @@ pub enum GameUiType {
 pub struct SweeperGame {
     area: GameArea,
     game_ui: Box<dyn GameUi>,
-    game_finished: bool,
 }
 
 impl SweeperGame {
@@ -26,13 +27,7 @@ impl SweeperGame {
         println!("Let's start!");
         let game_ui = create_ui(ui_type);
 
-        let game_finished = false;
-
-        SweeperGame {
-            area,
-            game_ui,
-            game_finished,
-        }
+        Self { area, game_ui }
     }
 
     pub fn start(&mut self) {
@@ -49,22 +44,22 @@ impl SweeperGame {
                     break 'running;
                 }
                 _ => {
-                    self.game_ui.print_area(&self.area).unwrap(); // Terminal
+                    self.game_ui
+                        .print_area(&self.area, &EvaluationResult::Nothing)
+                        .unwrap();
                     continue 'running;
                 }
             }
 
             // Update
             let evaluation = self.area.evaluate_square(x, y);
-            self.game_finished = self
-                .game_ui
-                .output_game_finished(evaluation, self.area.all_mines_detected()); // Terminal
 
             // Render
-            self.game_ui.print_area(&self.area).unwrap(); // Terminal
+            self.game_ui.print_area(&self.area, &evaluation).unwrap();
 
             // Time management!
-            if self.game_finished {
+            if evaluation != EvaluationResult::Nothing {
+                ::std::thread::sleep(Duration::new(5, 0));
                 break 'running;
             } else {
                 ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));

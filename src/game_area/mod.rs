@@ -1,6 +1,8 @@
 use core::cmp;
-use percent::Percent;
+
 use rand::Rng;
+
+use percent::Percent;
 use square::Square;
 
 pub mod percent;
@@ -12,6 +14,7 @@ const Y_SIZE: usize = 10;
 #[derive(Debug, PartialEq)]
 pub enum EvaluationResult {
     Mine,
+    Won,
     Nothing,
 }
 
@@ -73,7 +76,7 @@ impl GameArea {
         }
     }
 
-    pub fn evaluate_square(&mut self, x: usize, y: usize) -> EvaluationResult {
+    pub fn evaluate_square(&mut self, x: usize, y: usize) -> (EvaluationResult) {
         let mut result = EvaluationResult::Mine;
 
         let x_lower = x as i32 - 1;
@@ -95,13 +98,17 @@ impl GameArea {
                 }
             }
 
-            result = EvaluationResult::Nothing;
+            if self.all_mines_detected() {
+                result = EvaluationResult::Won;
+            } else {
+                result = EvaluationResult::Nothing;
+            }
         }
 
         result
     }
 
-    pub fn all_mines_detected(&self) -> bool {
+    fn all_mines_detected(&self) -> bool {
         let mut result = true;
 
         for line in 0..X_SIZE {

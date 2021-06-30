@@ -1,19 +1,19 @@
 use std::collections::HashMap;
 
 use sdl2::event::Event;
-use sdl2::EventPump;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::MouseButton;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
-use sdl2::render::{Texture, TextureCreator};
 use sdl2::render::Canvas;
+use sdl2::render::{Texture, TextureCreator};
 use sdl2::surface::Surface;
 use sdl2::ttf::{Font, Sdl2TtfContext};
 use sdl2::video::{Window, WindowContext};
+use sdl2::EventPump;
 
-use crate::game_area::{EvaluationResult, GameArea};
 use crate::game_area::square::Square;
+use crate::game_area::{EvaluationResult, GameArea};
 
 use super::GameUi;
 
@@ -92,7 +92,11 @@ impl Sdl {
         }
     }
 
-    fn render(&mut self, game_area: &GameArea) -> Result<(), String> {
+    fn render(
+        &mut self,
+        game_area: &GameArea,
+        evaluation: &EvaluationResult,
+    ) -> Result<(), String> {
         self.canvas.set_draw_color(Color::RGB(0, 0, 0));
         self.canvas.clear();
         self.canvas.set_draw_color(Color::RGB(255, 255, 255));
@@ -129,8 +133,20 @@ impl Sdl {
             "   X 0 1 2 3 4 5 6 7 8 9",
         );
         Sdl::generate_and_store_texture(&mut font, &mut texture_manager, "head2", " Y");
-        Sdl::generate_and_store_texture(&mut font, &mut texture_manager, "win", "Winner!");
-        Sdl::generate_and_store_texture(&mut font, &mut texture_manager, "loose", "LOOSER!");
+        self.canvas.set_draw_color(Color::RGB(0, 255, 0));
+        Sdl::generate_and_store_texture(
+            &mut font,
+            &mut texture_manager,
+            "win",
+            "==> You WON !!! <==",
+        );
+        self.canvas.set_draw_color(Color::RGB(255, 0, 0));
+        Sdl::generate_and_store_texture(
+            &mut font,
+            &mut texture_manager,
+            "loose",
+            "BOOMM!! You lost!",
+        );
 
         // ------------------------------------------------------------
 
@@ -147,6 +163,32 @@ impl Sdl {
                     elem as i32,
                     &game_area.area()[line][elem],
                 );
+            }
+        }
+
+        match evaluation {
+            EvaluationResult::Mine => {
+                Sdl::write_texture(
+                    &mut self.canvas,
+                    texture_manager.get("loose"),
+                    150,
+                    50,
+                    425,
+                    50,
+                );
+            }
+            EvaluationResult::Won => {
+                Sdl::write_texture(
+                    &mut self.canvas,
+                    texture_manager.get("win"),
+                    100,
+                    50,
+                    475,
+                    50,
+                );
+            }
+            _ => {
+                // nothing to do
             }
         }
 
@@ -276,48 +318,7 @@ impl GameUi for Sdl {
         result
     }
 
-    fn output_game_finished(&mut self, evaluation: EvaluationResult, all_mines_detected: bool) -> bool {
-        let mut game_finished = false;
-
-        match evaluation {
-            EvaluationResult::Mine => {
-                self.canvas.set_draw_color(Color::RGB(255, 0, 0));
-                println!("BOOMM!! You lost!");
-
-//                Sdl::write_texture(
-//                    &mut self.canvas,
-//                    &self.texture_manager.get("loose"),
-//                    250,
-//                    250,
-//                    175,
-//                    50,
-//                );
-
-                game_finished = true;
-            }
-            EvaluationResult::Nothing => {
-                if all_mines_detected {
-                    self.canvas.set_draw_color(Color::RGB(0, 255, 0));
-                    println!("==> You  WON !!! <==");
-
-//                    Sdl::write_texture(
-//                        &mut self.canvas,
-//                        &self.texture_manager.get("win"),
-//                        250,
-//                        250,
-//                        175,
-//                        50,
-//                    );
-
-                    game_finished = true;
-                }
-            }
-        }
-
-        game_finished
-    }
-
-    fn print_area(&mut self, area: &GameArea) -> Result<(), String> {
-        self.render(area)
+    fn print_area(&mut self, area: &GameArea, evaluation: &EvaluationResult) -> Result<(), String> {
+        self.render(area, evaluation)
     }
 }
