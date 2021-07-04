@@ -31,8 +31,8 @@ impl SweeperGame {
     }
 
     pub fn start(&mut self) {
-        let mut x = 0usize;
-        let mut y = 0usize;
+        let mut x: usize;
+        let mut y: usize;
         'running: loop {
             // Handle events
             match self.game_ui.input_coordinate() {

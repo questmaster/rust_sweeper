@@ -76,7 +76,7 @@ impl GameArea {
         }
     }
 
-    pub fn evaluate_square(&mut self, x: usize, y: usize) -> (EvaluationResult) {
+    pub fn evaluate_square(&mut self, x: usize, y: usize) -> EvaluationResult {
         let mut result = EvaluationResult::Mine;
 
         let x_lower = x as i32 - 1;

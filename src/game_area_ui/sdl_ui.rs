@@ -4,7 +4,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::mouse::MouseButton;
 use sdl2::pixels::Color;
-use sdl2::rect::{Point, Rect};
+use sdl2::rect::Rect;
 use sdl2::render::Canvas;
 use sdl2::render::{Texture, TextureCreator};
 use sdl2::surface::Surface;
@@ -84,7 +84,7 @@ impl Sdl {
 
         let event_pump = sdl_context.event_pump().unwrap();
 
-        Sdl {
+        Self {
             canvas,
             event_pump,
             ttf_context,
@@ -251,7 +251,7 @@ impl Sdl {
         for row in 0..=9 {
             for column in 0..=9 {
                 let rect = [Rect::new((column * 50) + 104, (row * 50) + 100, 50, 50)];
-                canvas.draw_rects(&rect);
+                canvas.draw_rects(&rect).unwrap();
             }
         }
     }
@@ -286,7 +286,6 @@ impl Sdl {
 
 impl GameUi for Sdl {
     fn input_coordinate(&mut self) -> Result<(usize, usize), bool> {
-        let (x, y) = (0usize, 0usize);
         let mut result: Result<(usize, usize), bool> = Err(false);
 
         for event in self.event_pump.poll_iter() {
@@ -310,7 +309,6 @@ impl GameUi for Sdl {
                 }
                 _ => {
                     // Extract x and y from UI
-                    //(x, y) = todo!("FIXME: This triggers always to eval 0,0!");
                     result = Err(false);
                 }
             }
