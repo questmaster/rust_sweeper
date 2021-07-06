@@ -154,7 +154,6 @@ impl Sdl {
         Sdl::write_coordinatesystem(&mut self.canvas, &texture_manager);
 
         for elem in 0..game_area.size_y() {
-            // todo: positioning is wrong
             for line in 0..game_area.size_x() {
                 Sdl::write_square_value(
                     &mut self.canvas,
