@@ -1,4 +1,3 @@
-
 #[derive(Copy, Clone)]
 pub struct Square {
     pub value: u8,
@@ -7,8 +6,8 @@ pub struct Square {
 }
 
 impl Square {
-    pub fn new() -> Square {
-        Square {
+    pub fn new() -> Self {
+        Self {
             value: 0,
             visible: false,
             mine: false,

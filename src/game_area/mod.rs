@@ -50,12 +50,18 @@ impl GameArea {
         self.size_y
     }
 
-    pub fn set_mine(&mut self, x: usize, y: usize) {
-        let x_lower = x as i32 - 1;
-        let x_higher = x + 2;
-        let y_lower = y as i32 - 1;
-        let y_higher = y + 2;
+    fn calculate_mine_ranges(x: usize, y: usize) -> (usize, usize, usize, usize) {
+        let x_lower = cmp::max(0, x as i32 - 1) as usize;
+        let x_higher = cmp::min(X_SIZE, x + 2);
+        let y_lower = cmp::max(0, y as i32 - 1) as usize;
+        let y_higher = cmp::min(Y_SIZE, y + 2);
+        (x_lower, x_higher, y_lower, y_higher)
+    }
 
+    pub fn set_mine(&mut self, x: usize, y: usize) {
+        let (x_lower, x_higher, y_lower, y_higher) = GameArea::calculate_mine_ranges(x, y);
+
+        // skip if already a mine
         if self.area[x][y].mine == true {
             return;
         }
@@ -64,9 +70,9 @@ impl GameArea {
             println!("[Debug] Placing mine at ({}, {}). Psst!", x, y);
         }
 
-        // todo: maybe add iterators
-        for line in cmp::max(0, x_lower) as usize..cmp::min(X_SIZE, x_higher) {
-            for elem in cmp::max(0, y_lower) as usize..cmp::min(Y_SIZE, y_higher) {
+        // setup mine and surroundings
+        for line in y_lower..x_higher {
+            for elem in y_lower..y_higher {
                 if line != x || elem != y {
                     self.area[line][elem].value += 1;
                 } else {
@@ -79,18 +85,15 @@ impl GameArea {
     pub fn evaluate_square(&mut self, x: usize, y: usize) -> EvaluationResult {
         let mut result = EvaluationResult::Mine;
 
-        let x_lower = x as i32 - 1;
-        let x_higher = x + 2;
-        let y_lower = y as i32 - 1;
-        let y_higher = y + 2;
-        // TODO extract surrounding fkt from this and above fkt.
+        let (x_lower, x_higher, y_lower, y_higher) = GameArea::calculate_mine_ranges(x, y);
 
         self.area[x][y].visible = true;
 
         if self.area[x][y].mine == false {
+            // open connected empty squares
             if self.area[x][y].value == 0 {
-                for line in cmp::max(0, x_lower) as usize..cmp::min(X_SIZE, x_higher) {
-                    for elem in cmp::max(0, y_lower) as usize..cmp::min(Y_SIZE, y_higher) {
+                for line in x_lower..x_higher {
+                    for elem in y_lower..y_higher {
                         if !self.area[line][elem].visible {
                             self.evaluate_square(line, elem);
                         }
@@ -98,6 +101,7 @@ impl GameArea {
                 }
             }
 
+            // check if all squares open except mines
             if self.all_mines_detected() {
                 result = EvaluationResult::Won;
             } else {
@@ -127,7 +131,7 @@ impl GameArea {
 
         let mine_cnt = ((self.size_x() * self.size_y()) as f32 * pct.value()) as usize;
 
-        for _i in 0..mine_cnt {
+        for _ in 0..mine_cnt {
             let x = rng.gen_range(0..self.size_x());
             let y = rng.gen_range(0..self.size_y());
 

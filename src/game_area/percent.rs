@@ -3,12 +3,12 @@ pub struct Percent {
 }
 
 impl Percent {
-    pub fn new(value: usize) -> Percent {
+    pub fn new(value: usize) -> Self {
         if value > 100 {
             panic!("Percentage out of range!");
         }
 
-        Percent {
+        Self {
             value: (value as f32 / 100.0),
         }
     }
