@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use game_area::percent::Percent;
@@ -15,14 +16,14 @@ pub enum GameUiType {
 }
 
 pub struct SweeperGame {
-    area: GameArea,
+    area: Arc<Mutex<GameArea>>,
     game_ui: Box<dyn GameUi>,
 }
 
 impl SweeperGame {
     pub fn new(ui_type: GameUiType) -> Self {
         println!("Preparing game area...");
-        let area = GameArea::new(Percent::new(10));
+        let area = Arc::new(Mutex::new(GameArea::new(Percent::new(10))));
 
         println!("Let's start!");
         let game_ui = create_ui(ui_type);
@@ -45,17 +46,19 @@ impl SweeperGame {
                 }
                 _ => {
                     self.game_ui
-                        .print_area(&self.area, &EvaluationResult::Nothing)
+                        .print_area(&self.area.lock().unwrap(), &EvaluationResult::Nothing)
                         .unwrap();
                     continue 'running;
                 }
             }
 
             // Update
-            let evaluation = self.area.evaluate_square(x, y);
+            let evaluation = self.area.lock().unwrap().evaluate_square(x, y);
 
             // Render
-            self.game_ui.print_area(&self.area, &evaluation).unwrap();
+            self.game_ui
+                .print_area(&self.area.lock().unwrap(), &evaluation)
+                .unwrap();
 
             // Time management!
             if evaluation != EvaluationResult::Nothing {

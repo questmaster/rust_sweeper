@@ -23,18 +23,16 @@ pub struct TextureManager<'a> {
 }
 
 impl<'s> TextureManager<'s> {
-    pub fn new(texture_creator: &TextureCreator<WindowContext>) -> TextureManager {
-        return TextureManager {
+    pub fn new(texture_creator: &'s TextureCreator<WindowContext>) -> Self {
+        Self {
             tc: &texture_creator,
             textures: HashMap::new(),
-        };
+        }
     }
 
     pub fn from_surface(&mut self, resource_id: &str, surface: Surface) -> &Texture {
-        {
-            if self.textures.contains_key(resource_id) {
-                return self.textures.get(resource_id).unwrap();
-            }
+        if self.textures.contains_key(resource_id) {
+            return self.textures.get(resource_id).unwrap();
         }
 
         let new_texture = self
@@ -307,7 +305,6 @@ impl GameUi for Sdl {
                     result = Ok((x, y));
                 }
                 _ => {
-                    // Extract x and y from UI
                     result = Err(false);
                 }
             }
